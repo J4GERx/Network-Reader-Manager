@@ -9,7 +9,7 @@ function Check-Letter {
 function Get-PathFromServer {
     param([string]$Server)
     if (-not $Server) { throw "Aucun serveur fourni." }
-    return "\\$Server\SupportIT$"
+    return "\\$Server\"
 }
 
 function Is-Letter-InUse {
@@ -44,12 +44,7 @@ function Map-Drive {
         }
 
         Write-Host "Connexion ${Letter}: -> $Path ..."
-                net use "${Letter}:" ${Path} /user:$User /persistent:yes
-
-        #De maniere plus propre 
-        #$cmd  = "net use ${Letter}: ${Path} /user:$User /persistent:yes"
-        #$result = cmd.exe /c $cmd 2>&1
-
+        net use "${Letter}:" ${Path} /user:$User /persistent:yes
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Erreur lors du montage !" -ForegroundColor Red
             Write-Host $result
@@ -228,3 +223,4 @@ do {
         }
     }
 } while ($true)
+
