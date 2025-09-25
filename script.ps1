@@ -128,16 +128,29 @@ Write-Host " "
 $User = Read-Host "Identifiant de votre compte (ex: REDACTED )"
 
 # Vérification de l'existence de l'utilisateur dans le domaine
-$checkUserCmd = "net user $User /domain"
+$checkUserCmd = "net user $User /domain" #laisser ou retirer domain selon votre envirronement
 $userCheckResult = cmd.exe /c $checkUserCmd 2>&1
+$userCheckResultText = $userCheckResult -join "`n"
 
-if ($userCheckResult -match "Le nom d'utilisateur est introuvable" -or $userCheckResult -match "The user name could not be found") {
-    Write-Host "L'utilisateur '$User' n'existe pas dans le domaine." -ForegroundColor Red
+if (
+    $userCheckResultText -match "Le nom d'utilisateur est introuvable" -or
+    $userCheckResultText -match "The user name could not be found" -or
+    $userCheckResultText -match "Le domaine spécifié n'existe pas" -or
+    $userCheckResultText -match "The specified domain either does not exist" -or
+    $userCheckResultText -match "Le domaine spécifié n’existe pas ou n’a pas pu être contacté" -or
+    $userCheckResultText -match "L’erreur système 1355 s’est produite"
+) {
+    Write-Host "L'utilisateur '$User' n'existe pas dans le domaine ou le domaine est inaccessible." -ForegroundColor Red
     Read-Host "Appuyez sur Entree pour continuer..."
     exit 1
-} else {
+} elseif ($userCheckResultText -match "Nom d'utilisateur" -or $userCheckResultText -match "User name") {
     Write-Host "Utilisateur '$User' trouve dans le domaine !" -ForegroundColor Green
     Start-Sleep -Seconds 3.5
+} else {
+    Write-Host "Impossible de determiner si l'utilisateur existe. Resultat brut :" -ForegroundColor Yellow
+    Write-Host $userCheckResultText
+    Read-Host "Appuyez sur Entree pour continuer..."
+    exit 1
 }
 $Server = "Aucune Cible Definie"
 $IpTarget = "Non resolu"
@@ -223,4 +236,5 @@ do {
         }
     }
 } while ($true)
+
 
